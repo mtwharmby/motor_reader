@@ -2,14 +2,8 @@ from PyTango import *
 import sys
 import time
 
-listX = []
-n = 0
-server = 'EH2B'  # Arg
-out = open('motorDAT.txt', 'w')  # Filename as arg?
-out.write('DeviceName\t\t\tAcceleration\tConversion\tBaseRate\tSlewRate\tSlewRateMax\tRunCurrent\tStopCurrent\tAxisName\n')
 
-
-def create_motor_tuple(moto, strG):
+def create_motor_tuple(moto, motoZ, strG):
     attr1 = moto.read_attribute("Acceleration")  # Rename attrs
 # print "moto, value ", attr1.value
     attr2 = moto.read_attribute("Conversion")
@@ -26,27 +20,34 @@ def create_motor_tuple(moto, strG):
             attr5.value, attr6.value, attr7.value, attr8.value)
 
 
-for n in range(1, 48):
-    if n >= 10:
-        str1 = 'p022/motor/'+server+'.'  # OMSVME
-    else:
-        str1 = 'p022/motor/'+server+'.0'
-    if n >= 10:
-        str2 = 'p022/ZMX/'+server+'.'  # ZMX
-    else:
-        str2 = 'p022/ZMX/'+server+'.0'
+if __name__ == '__main__':
+    listX = []
+    n = 0
+    server = 'EH2B'  # Arg
+    out = open('motorDAT.txt', 'w')  # Filename as arg?
+    out.write('DeviceName\t\t\tAcceleration\tConversion\tBaseRate\tSlewRate\tSlewRateMax\tRunCurrent\tStopCurrent\tAxisName\n')
 
-    strG = '%s%i' % (str1, n)  # Change to python3 style format string
-    strH = '%s%i' % (str2, n)
-    moto = DeviceProxy(strG)
-    motoZ = DeviceProxy(strH)
-    motx = create_motor_tuple(moto, strG)
+    for n in range(1, 48):
+        if n >= 10:
+            str1 = 'p022/motor/'+server+'.'  # OMSVME
+        else:
+            str1 = 'p022/motor/'+server+'.0'
+        if n >= 10:
+            str2 = 'p022/ZMX/'+server+'.'  # ZMX
+        else:
+            str2 = 'p022/ZMX/'+server+'.0'
 
-    out.write('%s\t\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t\t%.5f\t\t%s\n' % motX)
+        strG = '%s%i' % (str1, n)  # Change to python3 style format string
+        strH = '%s%i' % (str2, n)
+        moto = DeviceProxy(strG)
+        motoZ = DeviceProxy(strH)
+        motx = create_motor_tuple(moto, strG)
 
-    # listX=[]
-    listX.append(motX)
+        out.write('%s\t\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t\t%.5f\t\t%s\n' % motX)
 
-# print listX
-# return [listX]
-out.close
+        # listX=[]
+        listX.append(motX)
+
+    # print listX
+    # return [listX]
+    out.close
