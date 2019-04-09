@@ -2,12 +2,22 @@
 
 [![Build Status](https://travis-ci.com/mtwharmby/motor_reader.svg?branch=master)](https://travis-ci.com/mtwharmby/motor_reader)
 
-motor_reader calculates the value of a sample.
+motor_reader reads the current values of a set of attributes of the ZMX and OMSvme Tango servers. These values are then
+written to two files:
+- a human readable table
+- a computer readable dat file
 
-It provides the following features:
+motor_reader can also read the content of a properly structured dat file and write it's contents to the ZMX and OMSvme Tango servers of a given motor.
 
-* a feature
-* another feature
+The current set of parameters which are read are:
+- Acceleration
+- Conversion
+- BaseRate
+- SlewRate
+- SlewRateMax
+- RunCurrent
+- StopCurrent
+- AxisName'
 
 > This project is in an early stage of development and should be used with caution
 
@@ -41,4 +51,3 @@ $ pip3 install .
 ## Contribution
 
 Please feel free to open issues or pull requests.
-
