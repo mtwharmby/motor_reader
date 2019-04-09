@@ -1,39 +1,35 @@
-from mock import create_autospec, call
+import pytest
+from mock import Mock, patch
 
-import PyTango
-from readMotor import create_motor_tuple
-
-
-def test_create_motor_tuple(mocker):
-    mock_dp_oms = create_autospec(PyTango.DeviceProxy)
-    mock_dp_zmx = create_autospec(PyTango.DeviceProxy)
-    # mock_dp_ra = create_autospec(PyTango.DeviceProxy)
-
-    assert mock_dp_oms is not mock_dp_zmx
-
-    oms_calls = []
-    zmx_calls = []
-    for name in ['Acceleration', 'Conversion', 'BaseRate', 'SlewRate', 'SlewRateMax']:
-        oms_calls.append(call(name))
-    for name in ['AxisName', 'StopCurrent', 'RunCurrent']:
-        zmx_calls.append(call(name))
+from readMotor import read_parameters
 
 
+@pytest.fixture
+def patch_DevProxy(mocker):
+    return mocker.patch("readMotor.DeviceProxy")
 
 
+def test_write_readable_table(mocker):
+    pass
 
 
+def test_write_dat_file(mocker):
+    pass
 
-#    attribs_oms = ['Acceleration', 'Conversion', 'BaseRate', 'SlewRate',
-#                   'SlewRateMax']
-    #attribs_oms = ['Acceleration', 'Conversion', 'BaseRate', 'SlewRate',
-#                                  'SlewRateMax']
-#    attribs_zmx = ['RunCurrent', 'StopCurrent', 'AxisName']
-    attribs_zmx = ['AxisName', 'StopCurrent', 'RunCurrent']
 
-    create_motor_tuple(mock_dp_oms, mock_dp_zmx, 'string')
-    mock_dp_oms.read_attribute.assert_has_calls(oms_calls, any_order=True)
-    mock_dp_zmx.read_attribute.assert_has_calls(zmx_calls, any_order=True)
+@patch('readMotor._parameters_list', {'zmx': ['ZMXParam1', 'ZMXParam2'],
+                                      'oms': ['OMSParam3', 'OMSParam4']})
+def test_read_motor_parameters(mocker):
+    # Parameters table should have form:
+    # { 'zmx': [zmx_params], 'oms': [oms_params] }
+    # - zmx_params should be requested from ZMX Tango
+    # - oms_params should be requested from OMSvme Tango
+    zmx_dp_mock = Mock()
+    oms_dp_mock = Mock()
 
-#    for name in attribs_zmx:
-#        mock_dp_zmx.read_attribute.assert_called_with(name)
+    motor_dict = read_parameters(zmx_dp_mock, oms_dp_mock)
+
+    zmx_dp_mock.read_attribute.assert_called_with('ZMXParam2')
+    oms_dp_mock.read_attribute.assert_called_with('OMSParam4')
+    assert list(motor_dict.keys()) == ['ZMXParam1:zmx', 'ZMXParam2:zmx',
+                                       'OMSParam3:oms', 'OMSParam4:oms']

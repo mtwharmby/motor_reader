@@ -1,53 +1,32 @@
-from PyTango import *
-import sys
-import time
+#from PyTango import DeviceProxy
 
 
-def create_motor_tuple(moto, motoZ, strG):
-    attr1 = moto.read_attribute("Acceleration")  # Rename attrs
-# print "moto, value ", attr1.value
-    attr2 = moto.read_attribute("Conversion")
-
-    attr3 = moto.read_attribute("BaseRate")
-    # print "moto, value ", attr3.value
-    attr4 = moto.read_attribute("SlewRate")
-    attr5 = moto.read_attribute("SlewRateMax")
-    attr6 = motoZ.read_attribute("RunCurrent")
-    attr7 = motoZ.read_attribute("StopCurrent")
-    attr8 = motoZ.read_attribute("AxisName")
-
-    return (strG, attr1.value, attr2.value, attr3.value, attr4.value,
-            attr5.value, attr6.value, attr7.value, attr8.value)
+''' This is the list of parameters for ZMX and OMSvme respectively which will be read/written'''
+_parameters_list = {'zmx': [],
+                    'oms': []}
 
 
-if __name__ == '__main__':
-    listX = []
-    n = 0
-    server = 'EH2B'  # Arg
-    out = open('motorDAT.txt', 'w')  # Filename as arg?
-    out.write('DeviceName\t\t\tAcceleration\tConversion\tBaseRate\tSlewRate\tSlewRateMax\tRunCurrent\tStopCurrent\tAxisName\n')
+def read_parameters(zmx_dp, oms_dp):
+    '''
+    Reads the motor parameters listed in _parameters_list by querying the specified zmx and oms Tango servers
+    '''
+    motor_params = {}
 
-    for n in range(1, 48):
-        if n >= 10:
-            str1 = 'p022/motor/'+server+'.'  # OMSVME
-        else:
-            str1 = 'p022/motor/'+server+'.0'
-        if n >= 10:
-            str2 = 'p022/ZMX/'+server+'.'  # ZMX
-        else:
-            str2 = 'p022/ZMX/'+server+'.0'
+    for param in _parameters_list['zmx']:
+        param_name = '{0}:{1}'.format(param, 'zmx')
+        motor_params[param_name] = zmx_dp.read_attribute(param)
 
-        strG = '%s%i' % (str1, n)  # Change to python3 style format string
-        strH = '%s%i' % (str2, n)
-        moto = DeviceProxy(strG)
-        motoZ = DeviceProxy(strH)
-        motx = create_motor_tuple(moto, strG)
+    for param in _parameters_list['oms']:
+        param_name = '{0}:{1}'.format(param, 'oms')
+        motor_params[param_name] = oms_dp.read_attribute(param)
 
-        out.write('%s\t\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t\t%.5f\t\t%s\n' % motX)
+    return motor_params
 
-        # listX=[]
-        listX.append(motX)
 
-    # print listX
-    # return [listX]
-    out.close
+def main():
+    pass
+    # ForEach motor:
+    # - Create DeviceProxies
+    # - read_parameters
+    # - write_dat
+    # - write_readable_table
