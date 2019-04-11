@@ -1,4 +1,8 @@
-#from PyTango import DeviceProxy
+try:
+    from PyTango import DeviceProxy
+except ModuleNotFoundError:
+    print("WARNING: No PyTango module imported!\n\nIgnore if testing")
+    PyTango = None
 
 
 ''' This is the list of parameters for ZMX and OMSvme respectively which will be read/written'''
