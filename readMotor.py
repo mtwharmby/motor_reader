@@ -49,7 +49,21 @@ def read_parameters(oms_dp, zmx_dp):
 
 
 def main():
-    pass
+    # TODO argparse
+    server = 'EH1A'  # TODO Remove this! Should be set from argparse
+    beamline = 'p02'
+    tango_host = 'haspp02oh1:10000'
+    dev_names = generate_device_names(server, 1)
+
+    all_motor_params = {}
+    for server in sorted(dev_names.keys()):
+        for motor in dev_names[server]:
+            oms_dp = DeviceProxy('{}/{}/motor/{}'.format(tango_host, beamline, motor))
+            zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(tango_host, beamline, motor))
+            # all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
+
+    # write_dat(all_motor_params)  # TODO
+
     # ForEach motor:
     # - Create DeviceProxies
     # - read_parameters

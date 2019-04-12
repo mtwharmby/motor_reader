@@ -50,3 +50,11 @@ def test_read_motor_parameters(mocker):
     oms_dp_mock.read_attribute.assert_called_with('OMSParam4')
     assert list(motor_dict.keys()) == ['ZMXParam1:zmx', 'ZMXParam2:zmx',
                                        'OMSParam3:oms', 'OMSParam4:oms']
+
+@patch('readMotor.DeviceProxy')
+def test_main(dp_mock):
+    main()
+    dp_mock.assert_has_calls([call('haspp02oh1:10000/p02/motor/EH1A.01'),
+                              call('haspp02oh1:10000/p02/ZMX/EH1A.01')])
+    
+
