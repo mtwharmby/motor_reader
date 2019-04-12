@@ -25,14 +25,12 @@ def test_generate_device_names():
     # Name pattern for ZMX: {beamline}/ZMX/{server}.{nn}
     # Name pattern for OMS: {beamline}/motor/{server}.{nn}
     # When provided with b/l & server, return dictionary of names of devices
-    dev_names = generate_device_names('EH1A', [12], 'bl00')
-    assert dev_names == {'EH1A.12': {'oms': 'bl00/motor/EH1A.12',
-                                     'zmx': 'bl00/ZMX/EH1A.12'}}
+    dev_names = generate_device_names('EH1A', [5, 15, 19])
+    assert dev_names == {'EH1A': ['EH1A.05', 'EH1A.15', 'EH1A.19']}
 
-    dev_names = generate_device_names('EH1B', beamline='bl00')
-    assert len(dev_names) == 16
-    assert dev_names['EH1B.07'] == {'oms': 'bl00/motor/EH1B.07',
-                                    'zmx': 'bl00/ZMX/EH1B.07'}
+    dev_names = generate_device_names('EH1B')
+    assert len(dev_names['EH1B']) == 16
+    assert dev_names['EH1B'][6] == 'EH1B.07'
 
 
 @patch('readMotor._parameters_list', {'zmx': ['ZMXParam1', 'ZMXParam2'],
