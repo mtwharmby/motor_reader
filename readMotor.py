@@ -12,6 +12,10 @@ _beamline = 'p021'
 _servers = {'EH1A': 64, 'EH1B': 16}
 
 
+def parse_args(args):
+    pass
+
+
 def generate_device_names(server, dev_ids=None):
     '''
     Determines the names of the motor Tango servers associated with a given 
@@ -49,17 +53,19 @@ def read_parameters(oms_dp, zmx_dp):
 
 
 def main():
-    # TODO argparse
-    server = 'EH1A'  # TODO Remove this! Should be set from argparse
-    beamline = 'p02'
-    tango_host = 'haspp02oh1:10000'
-    dev_names = generate_device_names(server, 1)
+    # Find out what we're supposed to be doing...
+    args = None  # FIXME!
+    config = parse_args()
 
+    # Construct all the names of the motors we're interested in
+    dev_names = generate_device_names(config['server'], config['dev_ids'])
+
+    # For each motor in the list, make Tango servers and query them for information
     all_motor_params = {}
     for server in sorted(dev_names.keys()):
         for motor in dev_names[server]:
-            oms_dp = DeviceProxy('{}/{}/motor/{}'.format(tango_host, beamline, motor))
-            zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(tango_host, beamline, motor))
+            oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
+            zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
             # all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
 
     # write_dat(all_motor_params)  # TODO

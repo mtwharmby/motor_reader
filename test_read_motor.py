@@ -52,7 +52,13 @@ def test_read_motor_parameters(mocker):
                                        'OMSParam3:oms', 'OMSParam4:oms']
 
 @patch('readMotor.DeviceProxy')
-def test_main(dp_mock):
+@patch('readMotor.parse_args')
+def test_main(args_p, dp_mock):
+    args_p.return_value = {'beamline': 'p02',
+                           'tango_host': 'haspp02oh1:10000',
+                           'server': 'EH1A',
+                           'dev_ids': 1}
+
     main()
     dp_mock.assert_has_calls([call('haspp02oh1:10000/p02/motor/EH1A.01'),
                               call('haspp02oh1:10000/p02/ZMX/EH1A.01')])
