@@ -64,18 +64,28 @@ def test_read_motor_parameters():
                           'zmx:attr1': 4, 'zmx:attr2': 4}
 
 
+@patch('readMotor.datetime')
 @patch('readMotor.file_writer')
-def test_write_dat_file(file_write_mock):
+def test_write_dat_file(file_write_mock, date_mock):
+    now = Mock()
+    now.year = 2019
+    now.month = 4
+    now.day = 14
+    now.hour = 23
+    now.minute = 52
+    now.second = 5
+    date_mock.today.return_value = now
+
     write_dat({'EH1A.01': {'oms:attr1': 4, 'oms:attr2': 7,
                            'zmx:attr1': 12, 'zmx:attr2': 756},
                'EH1A.03': {'oms:attr1': 1, 'oms:attr2': 43,
                            'zmx:attr1': 6, 'zmx:attr2': 793}
                })
-    
+
     file_write_mock.assert_called_with(['EH1A.01,oms:attr1,4,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',
                                         'EH1A.03,oms:attr1,1,oms:attr2,43,zmx:attr1,6,zmx:attr2,793\n'
-                                        ])
-    
+                                        ], 'motors-20190414_235205.params')
+
 
 @patch('readMotor.write_dat')
 @patch('readMotor.read_parameters')

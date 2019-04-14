@@ -1,5 +1,6 @@
 import sys
 import argparse
+from datetime import datetime
 
 try:
     from PyTango import DeviceProxy
@@ -98,7 +99,11 @@ def write_dat(all_params):
         joined_line = ','.join(line)
         out_lines.append(joined_line+'\n')
 
-    file_writer(out_lines)
+    now = datetime.today()
+    print(now.year)
+    params_filename = 'motors-{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}.params'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
+
+    file_writer(out_lines, params_filename)
 
 
 def main():
