@@ -1,7 +1,8 @@
 import pytest
 from mock import call, Mock, patch
 
-from readMotor import parse_args, read_parameters, generate_device_names, write_dat, file_writer, main
+from readMotor import (parse_args, read_parameters, generate_device_names, 
+                       read_dat, write_dat, file_writer, main)
 
 
 def test_parse_args():
@@ -62,6 +63,22 @@ def test_read_motor_parameters():
 
     assert motor_dict == {'oms:attr1': 4, 'oms:attr2': 4,
                           'zmx:attr1': 4, 'zmx:attr2': 4}
+
+
+@patch('readMotor.file_reader')
+def test_read_dat_file(file_read_mock):
+    file_read_mock.return_value = ['EH1A.01,oms:attr1,4.3,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',
+                                   'EH1A.03,oms:attr1,1.0,oms:attr2,43,zmx:attr1,6,zmx:attr2,793\n'
+                                   ]
+
+    all_params = read_dat('motor_date.params')
+    file_read_mock.assert_called_with('motor_date.params')
+    assert all_params == {'EH1A.01': {'oms:attr1': 4.3, 'oms:attr2': 7,
+                                      'zmx:attr1': 12, 'zmx:attr2': 756},
+                          'EH1A.03': {'oms:attr1': 1.0, 'oms:attr2': 43,
+                                      'zmx:attr1': 6, 'zmx:attr2': 793}
+                          }
+
 
 
 @patch('readMotor.datetime')

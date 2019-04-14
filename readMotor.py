@@ -89,6 +89,34 @@ def file_writer(input_lines, filename):
         out_file.flush()
 
 
+def read_dat(filename):
+    def string_to_numeric(string):
+        try:
+            return int(string)
+        except ValueError:
+            try:
+                return float(string)
+            except ValueError:
+                print('String {} cannot be converted to int or float. Aborting!'.format(string))
+                sys.exit(1)
+
+    in_lines = file_reader(filename)
+
+    all_params = {}
+    for line in in_lines:
+        line = line.rstrip().split(',')
+        assert len(line) % 2 != 0  # There should be n k,v pairs + the device name (odd number of entries in list)
+        
+        attribs = {}
+        attrib_list = line[1:]
+        for i in range(int(len(attrib_list) / 2)):
+            attribs[attrib_list[i*2]] = string_to_numeric(attrib_list[2*i+1])
+        
+        all_params[line[0]] = attribs
+    
+    return all_params
+
+
 def write_dat(all_params):
     out_lines = []
     for device, attributes in sorted(all_params.items()):
