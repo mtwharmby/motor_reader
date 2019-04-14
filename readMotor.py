@@ -8,13 +8,34 @@ except ModuleNotFoundError:
 ''' This is the list of parameters for ZMX and OMSvme respectively which will be read/written'''
 _parameters_list = {'zmx': [],
                     'oms': []}
-_beamline = 'p021'
+_beamline = 'p02'
+_tango_host = 'haspp02oh1:10000'
 _servers = {'EH1A': 64, 'EH1B': 16}
 
 
-def parse_args(args):
-    pass
-
+def parse_args(user_args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--beamline', '-b', default=_beamline)
+    parser.add_argument('--tango-host', dest='tango_host', default=_tango_host)
+    parser.add_argument('--server', '-s', required=True)
+    # At somepoint we could make server not required, default to the all the 
+    # keys in the _servers dict. But that needs more refactoring
+    parser.add_argument('dev_ids', default=None, nargs='?')
+    
+    args = parser.parse_args(user_args)
+    config = {'beamline': args.beamline,
+              'tango_host': args.tango_host,
+              'server': args.server}
+    
+    if args.dev_ids:
+        try:
+            dev_ids = list(map(lambda x: int(x), args.dev_ids.split(',')))
+        except ValueError:
+            print('Unexpected value for device IDs. Should be a comma separated list of integers')
+            sys.exit(1)
+    else:
+        dev_ids = None
+    
 
 def generate_device_names(server, dev_ids=None):
     '''
@@ -57,8 +78,7 @@ def read_parameters(oms_dp, zmx_dp):
 
 def main():
     # Find out what we're supposed to be doing...
-    args = None  # FIXME!
-    config = parse_args()
+    config = parse_args(sys.argv[1:])
 
     # Construct all the names of the motors we're interested in
     dev_names = generate_device_names(config['server'], config['dev_ids'])

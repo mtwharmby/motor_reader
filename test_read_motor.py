@@ -1,6 +1,38 @@
 import pytest
-from mock import Mock, patch
+from mock import call, Mock, patch
 
+from readMotor import parse_args, read_parameters, generate_device_names, main
+
+
+def test_parse_args():
+    # parse_args needs to return a dictionary, something like:
+    eg_conf1 = {'beamline': 'p02',
+                'tango_host': 'haspp02oh1:10000',
+                'server': 'EH1A',
+                'dev_ids': [1]}
+    
+    # An example aya.argv to encode this lot:
+    eg_argv1 = ['-b', 'p02', '--tango-host', 'haspp02oh1:10000',
+                '-s', 'EH1A', '1']
+    assert parse_args(eg_argv1) == eg_conf1
+
+    # An example requiring more defaulting
+    eg_conf2 = {'beamline': 'p02',
+                'tango_host': 'haspp02oh1:10000',
+                'server': 'EH1A',
+                'dev_ids': [12, 15, 32]}
+    eg_argv2 = ['-s', 'EH1A', '12,15,32']
+    assert parse_args(eg_argv2) == eg_conf2
+
+    # Requires even more defaulting!
+    eg_conf3 = {'beamline': 'p02',
+                'tango_host': 'haspp02oh1:10000',
+                'server': 'EH1A',
+                'dev_ids': None}
+    eg_argv3 = ['-s', 'EH1A']
+    assert parse_args(eg_argv3) == eg_conf3
+    
+    
 from readMotor import read_parameters, generate_device_names
 
 
