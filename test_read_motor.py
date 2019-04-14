@@ -1,7 +1,7 @@
 import pytest
 from mock import call, Mock, patch
 
-from readMotor import parse_args, read_parameters, generate_device_names, main
+from readMotor import parse_args, read_parameters, generate_device_names, write_dat, file_writer, main
 
 
 def test_parse_args():
@@ -38,10 +38,6 @@ def test_parse_args():
 #     return mocker.patch(readMotor, DeviceProxy")
 
 
-def test_write_dat_file():
-    pass
-
-
 def test_generate_device_names():
     # Name pattern for ZMX: {beamline}/ZMX/{server}.{nn}
     # Name pattern for OMS: {beamline}/motor/{server}.{nn}
@@ -67,6 +63,19 @@ def test_read_motor_parameters():
     assert motor_dict == {'oms:attr1': 4, 'oms:attr2': 4,
                           'zmx:attr1': 4, 'zmx:attr2': 4}
 
+
+@patch('readMotor.file_writer')
+def test_write_dat_file(file_write_mock):
+    write_dat({'EH1A.01': {'oms:attr1': 4, 'oms:attr2': 7,
+                           'zmx:attr1': 12, 'zmx:attr2': 756},
+               'EH1A.03': {'oms:attr1': 1, 'oms:attr2': 43,
+                           'zmx:attr1': 6, 'zmx:attr2': 793}
+               })
+    
+    file_write_mock.assert_called_with(['EH1A.01,oms:attr1,4,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',
+                                        'EH1A.03,oms:attr1,1,oms:attr2,43,zmx:attr1,6,zmx:attr2,793\n'
+                                        ])
+    
 
 @patch('readMotor.write_dat')
 @patch('readMotor.read_parameters')

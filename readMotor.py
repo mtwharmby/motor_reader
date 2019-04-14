@@ -68,7 +68,7 @@ def read_parameters(oms_dp, zmx_dp):
     '''
     motor_params = {}
 
-    for i, (prefix, dev_proxy) in enumerate({'oms': oms_dp, 'zmx': zmx_dp}.items()):
+    for prefix, dev_proxy in {'oms': oms_dp, 'zmx': zmx_dp}.items():
         all_attributes = dev_proxy.get_all_attributes()  # TODO Check this!
         for attrib in all_attributes:
             label = '{}:{}'.format(prefix, attrib)
@@ -77,8 +77,28 @@ def read_parameters(oms_dp, zmx_dp):
     return motor_params
 
 
+def file_reader(filename):
+    with open(filename, 'r') as in_file:
+        return in_file.readlines()
+
+
+def file_writer(input_lines, filename):
+    with open(filename, 'w') as out_file:
+        out_file.writelines(input_lines)
+        out_file.flush()
+
+
 def write_dat(all_params):
-    pass
+    out_lines = []
+    for device, attributes in sorted(all_params.items()):
+        line = [device]
+        for attr, value in sorted(attributes.items()):
+            line.append('{},{}'.format(attr, value))
+
+        joined_line = ','.join(line)
+        out_lines.append(joined_line+'\n')
+
+    file_writer(out_lines)
 
 
 def main():
