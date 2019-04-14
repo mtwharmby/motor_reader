@@ -1,3 +1,6 @@
+import sys
+import argparse
+
 try:
     from PyTango import DeviceProxy
 except ModuleNotFoundError:
