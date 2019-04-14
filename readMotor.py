@@ -36,14 +36,17 @@ def generate_device_names(server, dev_ids=None):
 
 def read_parameters(oms_dp, zmx_dp):
     '''
-    Reads the motor parameters listed in _parameters_list by querying the 
-    specified zmx and oms Tango servers
+    Returns a dictionary containing the values of all the attributes
     '''
     motor_params = {}
+    
+    for i, (prefix, dev_proxy) in enumerate({'oms': oms_dp, 'zmx': zmx_dp}.items()):
+        all_attributes = dev_proxy.get_all_attributes()  # TODO Check this!
+        for attrib in all_attributes:
+            label = '{}:{}'.format(prefix, attrib)
+            motor_params[label] = dev_proxy.read_attribute(attrib).value
 
-    for param in _parameters_list['zmx']:
-        param_name = '{0}:{1}'.format(param, 'zmx')
-        motor_params[param_name] = zmx_dp.read_attribute(param)
+    return motor_params
 
     for param in _parameters_list['oms']:
         param_name = '{0}:{1}'.format(param, 'oms')

@@ -33,23 +33,19 @@ def test_generate_device_names():
     assert dev_names['EH1B'][6] == 'EH1B.07'
 
 
-@patch('readMotor._parameters_list', {'zmx': ['ZMXParam1', 'ZMXParam2'],
-                                      'oms': ['OMSParam3', 'OMSParam4']})
-def test_read_motor_parameters(mocker):
-    # monkeypatch.setattr(PyTango, 'DeviceProxy', Mock())
-    # Parameters table should have form:
-    # { 'zmx': [zmx_params], 'oms': [oms_params] }
-    # - zmx_params should be requested from ZMX Tango
-    # - oms_params should be requested from OMSvme Tango
-    zmx_dp_mock = Mock()
+def test_read_motor_parameters():
     oms_dp_mock = Mock()
+    zmx_dp_mock = Mock()
 
+    for dp in [oms_dp_mock, zmx_dp_mock]:
+        dp.get_all_attributes.return_value = ['attr1', 'attr2']
+        dp.read_attribute().value = 4
+    
     motor_dict = read_parameters(oms_dp_mock, zmx_dp_mock)
 
-    zmx_dp_mock.read_attribute.assert_called_with('ZMXParam2')
-    oms_dp_mock.read_attribute.assert_called_with('OMSParam4')
-    assert list(motor_dict.keys()) == ['ZMXParam1:zmx', 'ZMXParam2:zmx',
-                                       'OMSParam3:oms', 'OMSParam4:oms']
+    assert motor_dict == {'oms:attr1': 4, 'oms:attr2': 4,
+                          'zmx:attr1': 4, 'zmx:attr2': 4}
+
 
 @patch('readMotor.DeviceProxy')
 @patch('readMotor.parse_args')
