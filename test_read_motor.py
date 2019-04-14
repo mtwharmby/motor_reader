@@ -79,16 +79,24 @@ def test_read_motor_parameters():
                           'zmx:attr1': 4, 'zmx:attr2': 4}
 
 
+@patch('readMotor.write_dat')
+@patch('readMotor.read_parameters')
 @patch('readMotor.DeviceProxy')
 @patch('readMotor.parse_args')
-def test_main(args_p, dp_mock):
-    args_p.return_value = {'beamline': 'p02',
-                           'tango_host': 'haspp02oh1:10000',
-                           'server': 'EH1A',
-                           'dev_ids': 1}
+def test_main(args_p_mock, dp_mock, read_params_mock, writer_mock):
+    args_p_mock.return_value = {'beamline': 'p02',
+                                'tango_host': 'haspp02oh1:10000',
+                                'server': 'EH1A',
+                                'dev_ids': [1,3]}
+    read_params_mock.return_value = {'oms:attr1': 4, 'oms:attr2': 4,
+                                     'zmx:attr1': 4, 'zmx:attr2': 4}
 
     main()
     dp_mock.assert_has_calls([call('haspp02oh1:10000/p02/motor/EH1A.01'),
                               call('haspp02oh1:10000/p02/ZMX/EH1A.01')])
-    
+    writer_mock.assert_called_with({'EH1A.01': {'oms:attr1': 4, 'oms:attr2': 4,
+                                                'zmx:attr1': 4, 'zmx:attr2': 4},
+                                    'EH1A.03': {'oms:attr1': 4, 'oms:attr2': 4,
+                                                'zmx:attr1': 4, 'zmx:attr2': 4}
+                                    })
 

@@ -76,7 +76,8 @@ def read_parameters(oms_dp, zmx_dp):
         param_name = '{0}:{1}'.format(param, 'oms')
         motor_params[param_name] = oms_dp.read_attribute(param)
 
-    return motor_params
+def write_dat(all_params):
+    pass
 
 
 def main():
@@ -92,9 +93,9 @@ def main():
         for motor in dev_names[server]:
             oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
             zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
-            # all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
+            all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
 
-    # write_dat(all_motor_params)  # TODO
+    write_dat(all_motor_params)
 
     # ForEach motor:
     # - Create DeviceProxies
