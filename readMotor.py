@@ -5,10 +5,11 @@ try:
     from PyTango import DeviceProxy
 except ModuleNotFoundError:
     print("WARNING: No PyTango module imported!\n\nIgnore if testing")
-    PyTango = None
+    DeviceProxy = None
 
 
-''' This is the list of parameters for ZMX and OMSvme respectively which will be read/written'''
+''' This is the list of parameters for ZMX and OMSvme respectively which will
+ be read/written'''
 _parameters_list = {'zmx': [],
                     'oms': []}
 _beamline = 'p02'
@@ -24,12 +25,12 @@ def parse_args(user_args):
     # At somepoint we could make server not required, default to the all the 
     # keys in the _servers dict. But that needs more refactoring
     parser.add_argument('dev_ids', default=None, nargs='?')
-    
+
     args = parser.parse_args(user_args)
     config = {'beamline': args.beamline,
               'tango_host': args.tango_host,
               'server': args.server}
-    
+
     if args.dev_ids:
         try:
             dev_ids = list(map(lambda x: int(x), args.dev_ids.split(',')))
@@ -38,7 +39,10 @@ def parse_args(user_args):
             sys.exit(1)
     else:
         dev_ids = None
-    
+
+    config['dev_ids'] = dev_ids
+    return config
+
 
 def generate_device_names(server, dev_ids=None):
     '''
@@ -63,7 +67,7 @@ def read_parameters(oms_dp, zmx_dp):
     Returns a dictionary containing the values of all the attributes
     '''
     motor_params = {}
-    
+
     for i, (prefix, dev_proxy) in enumerate({'oms': oms_dp, 'zmx': zmx_dp}.items()):
         all_attributes = dev_proxy.get_all_attributes()  # TODO Check this!
         for attrib in all_attributes:
@@ -72,9 +76,6 @@ def read_parameters(oms_dp, zmx_dp):
 
     return motor_params
 
-    for param in _parameters_list['oms']:
-        param_name = '{0}:{1}'.format(param, 'oms')
-        motor_params[param_name] = oms_dp.read_attribute(param)
 
 def write_dat(all_params):
     pass

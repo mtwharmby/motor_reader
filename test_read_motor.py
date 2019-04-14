@@ -10,7 +10,7 @@ def test_parse_args():
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
                 'dev_ids': [1]}
-    
+
     # An example aya.argv to encode this lot:
     eg_argv1 = ['-b', 'p02', '--tango-host', 'haspp02oh1:10000',
                 '-s', 'EH1A', '1']
@@ -31,24 +31,13 @@ def test_parse_args():
                 'dev_ids': None}
     eg_argv3 = ['-s', 'EH1A']
     assert parse_args(eg_argv3) == eg_conf3
-    
-    
-from readMotor import read_parameters, generate_device_names
 
 
-@pytest.fixture
-def patch_DevProxy(mocker):
-    PyTango = pytest.importorskip('PyTango')
-    return mocker.patch("readMotor.DeviceProxy")
-#
-#
-# def test
-#
-#
-# def test_write_readable_table(mocker):
-#     pass
-#
-#
+# @pytest.fixture
+# def patch_DevProxy(mocker):
+#     return mocker.patch(readMotor, DeviceProxy")
+
+
 def test_write_dat_file():
     pass
 
@@ -72,7 +61,7 @@ def test_read_motor_parameters():
     for dp in [oms_dp_mock, zmx_dp_mock]:
         dp.get_all_attributes.return_value = ['attr1', 'attr2']
         dp.read_attribute().value = 4
-    
+
     motor_dict = read_parameters(oms_dp_mock, zmx_dp_mock)
 
     assert motor_dict == {'oms:attr1': 4, 'oms:attr2': 4,
@@ -99,4 +88,3 @@ def test_main(args_p_mock, dp_mock, read_params_mock, writer_mock):
                                     'EH1A.03': {'oms:attr1': 4, 'oms:attr2': 4,
                                                 'zmx:attr1': 4, 'zmx:attr2': 4}
                                     })
-
