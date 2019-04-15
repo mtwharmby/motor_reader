@@ -1,8 +1,8 @@
 import pytest
 from mock import call, Mock, patch
 
-from readMotor import (parse_args, read_parameters, generate_device_names, 
-                       read_dat, write_dat, main)
+from readMotor import (parse_args, read_parameters, write_parameters,
+                       generate_device_names, read_dat, write_dat, main)
 
 
 def test_parse_args():
@@ -141,10 +141,12 @@ def test_write_dat_file(file_write_mock, date_mock):
 @patch('readMotor.DeviceProxy')
 @patch('readMotor.parse_args')
 def test_main(args_p_mock, dp_mock, read_params_mock, writer_mock):
+    # This is a normal reading run...
     args_p_mock.return_value = {'beamline': 'p02',
                                 'tango_host': 'haspp02oh1:10000',
                                 'server': 'EH1A',
-                                'dev_ids': [1,3]}
+                                'dev_ids': [1, 3],
+                                'write_params': False}
     read_params_mock.return_value = {'oms:attr1': 4, 'oms:attr2': 4,
                                      'zmx:attr1': 4, 'zmx:attr2': 4}
 
