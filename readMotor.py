@@ -78,6 +78,10 @@ def read_parameters(oms_dp, zmx_dp):
             try:
                 motor_params[label] = dev_proxy.read_attribute(attrib).value
             except DevFailed:
+                print('INFO: Value of {} ({}) is undefined. Saved as nan.'.format(attrib, dev_proxy.dev_name()))
+                motor_params[label] = math.nan
+            except UnicodeDecodeError:
+                print('WARNING: Cannot read value of {} ({}). Saved as nan.'.format(attrib, dev_proxy.dev_name()))
                 motor_params[label] = math.nan
 
     return motor_params
