@@ -70,7 +70,7 @@ def read_parameters(oms_dp, zmx_dp):
     motor_params = {}
 
     for prefix, dev_proxy in {'oms': oms_dp, 'zmx': zmx_dp}.items():
-        all_attributes = dev_proxy.get_all_attributes()  # TODO Check this!
+        all_attributes = dev_proxy.get_attribute_list()
         for attrib in all_attributes:
             label = '{}:{}'.format(prefix, attrib)
             motor_params[label] = dev_proxy.read_attribute(attrib).value
@@ -106,14 +106,14 @@ def read_dat(filename):
     for line in in_lines:
         line = line.rstrip().split(',')
         assert len(line) % 2 != 0  # There should be n k,v pairs + the device name (odd number of entries in list)
-        
+
         attribs = {}
         attrib_list = line[1:]
         for i in range(int(len(attrib_list) / 2)):
             attribs[attrib_list[i*2]] = string_to_numeric(attrib_list[2*i+1])
-        
+
         all_params[line[0]] = attribs
-    
+
     return all_params
 
 

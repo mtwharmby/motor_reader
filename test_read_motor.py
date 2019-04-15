@@ -56,7 +56,7 @@ def test_read_motor_parameters():
     zmx_dp_mock = Mock()
 
     for dp in [oms_dp_mock, zmx_dp_mock]:
-        dp.get_all_attributes.return_value = ['attr1', 'attr2']
+        dp.get_attribute_list.return_value = ['attr1', 'attr2']
         dp.read_attribute().value = 4
 
     motor_dict = read_parameters(oms_dp_mock, zmx_dp_mock)
