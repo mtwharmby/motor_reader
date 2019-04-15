@@ -210,6 +210,24 @@ def main():
     # Construct all the names of the motors we're interested in
     dev_names = generate_device_names(config['server'], config['dev_ids'])
 
+    if config['write_params']:
+        input_motor_params = read_dat(config['input_file'])
+
+        # We check that all of the motors we are interested in have an entry in our input file
+        all_motors = list(itertools.chain.from_iterable(dev_names.values()))
+        if set(all_motors).issubset(input_motor_params.keys()):
+            for motor in all_motors:
+                oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
+                zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
+                print('Writing config to motor {}'.format(motor))
+                write_parameters(oms_dp, zmx_dp, input_motor_params[motor])
+                print('{}: DONE'.format(motor))
+            print('\nSuccessfully updated configuration for motors:\n{}'.format(', '.join(all_motors)))
+        else:
+            print('ERROR: Configuration for one or more of the requested motors is not in\nthe input file.\nAborting...')
+            sys.exit(1)
+    else:
+        all_motor_params = {}
     # For each motor in the list, make Tango servers and query them for information
     all_motor_params = {}
     for server in sorted(dev_names.keys()):

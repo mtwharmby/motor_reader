@@ -156,3 +156,30 @@ def test_main(args_p_mock, dp_mock, read_params_mock, writer_mock):
                                     'EH1A.03': {'oms:attr1': 4, 'oms:attr2': 4,
                                                 'zmx:attr1': 4, 'zmx:attr2': 4}
                                     })
+
+
+@patch('readMotor.write_parameters')
+@patch('readMotor.read_dat')
+@patch('readMotor.DeviceProxy')
+@patch('readMotor.parse_args')
+def test_main_write(args_p_mock, dp_mock, read_dat_mock, write_params_mock):
+    # This time, let's try a parameter writing run...
+    args_p_mock.return_value = {'beamline': 'p02',
+                                'tango_host': 'haspp02oh1:10000',
+                                'server': 'EH1A',
+                                'dev_ids': [3],
+                                'write_params': True,
+                                'input_file': 'new-motors.param'}
+
+    read_dat_mock.return_value = {'EH1A.01': {'oms:attr1': 4, 'oms:attr2': 7,
+                                              'zmx:attra': 12, 'zmx:attrb': 756},
+                                  'EH1A.03': {'oms:attr1': 1, 'oms:attr2': 43,
+                                              'zmx:attra': 6, 'zmx:attrb': 793}
+                                  }
+
+    main()
+
+    read_dat_mock.assert_called_with('new-motors.param')
+    write_params_mock.assert_called_once_with(dp_mock(), dp_mock(), 
+                                           {'oms:attr1': 1, 'oms:attr2': 43,
+                                            'zmx:attra': 6, 'zmx:attrb': 793})
