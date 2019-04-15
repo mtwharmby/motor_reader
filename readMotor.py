@@ -240,18 +240,19 @@ def main():
             sys.exit(1)
     else:
         all_motor_params = {}
-    # For each motor in the list, make Tango servers and query them for information
+        # For each motor in the list, make Tango servers and query them for information
     all_motor_params = {}
-    for server in sorted(dev_names.keys()):
-        for motor in dev_names[server]:
-            oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
-            zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
-            print('Reading parameters for device {}...'.format(motor))
-            all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
-            print('{}: DONE'.format(motor))
+        for server in sorted(dev_names.keys()):
+            for motor in dev_names[server]:
+                oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
+                zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
+                print('Reading parameters for motor {}...'.format(motor))
+                all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
+                print('{}: DONE'.format(motor))
+            print('\nSuccessfully read configurations for motors:\n{}'.format(', '.join(dev_names[server])))
 
-    make_reduced_attribs()
-    write_dat(all_motor_params)
+        make_reduced_attribs()
+        write_dat(all_motor_params)
 
 
 if __name__ == "__main__":
