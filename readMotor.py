@@ -156,3 +156,6 @@ def main():
     # - read_parameters
     # - write_dat
     # - write_readable_table
+
+if __name__ == "__main__":
+    main()
