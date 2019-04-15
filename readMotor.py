@@ -14,11 +14,12 @@ except ModuleNotFoundError:
 
 ''' This is the list of parameters for ZMX and OMSvme respectively which will
  be read/written'''
-_parameters_list = {'zmx': ['StopCurrent', 'RunCurrent', 
-                            'PreferentialDirection', 'StepWidth', 'DelayTime', 
-                            'AxisName'],
-                    'oms': ['Acceleration', 'BaseRate', 'Conversion', 
-                            'SettleTime', 'SlewRate', 'SlewRateMax', 
+_parameters_list = {'zmx': ['StopCurrent', 'RunCurrent',
+                            'PreferentialDirection', 'StepWidth', 'DelayTime',
+                            'AxisName', 'InputLogicLevel','Deactivation',
+                            'Overdrive', 'PathOutputFiles'],
+                    'oms': ['Acceleration', 'BaseRate', 'Conversion',
+                            'SettleTime', 'SlewRate', 'SlewRateMax',
                             'SlewRateMin', 'StepBacklash', 'StepCalibration',
                             'StepCalibrationUser', 'StepLimitMax',
                             'StepLimitMin', 'StepPositionInternal',
