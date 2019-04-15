@@ -42,12 +42,19 @@ def parse_args(user_args):
     parser.add_argument('--server', '-s', required=True)
     # At somepoint we could make server not required, default to the all the 
     # keys in the _servers dict. But that needs more refactoring
+    parser.add_argument('--write', default=False)
     parser.add_argument('dev_ids', default=None, nargs='?')
 
     args = parser.parse_args(user_args)
     config = {'beamline': args.beamline,
               'tango_host': args.tango_host,
               'server': args.server}
+
+    if args.write:
+        config['write_params'] = True
+        config['input_file'] = args.write
+    else:
+        config['write_params'] = False
 
     if args.dev_ids:
         try:

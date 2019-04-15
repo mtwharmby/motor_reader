@@ -10,9 +10,9 @@ def test_parse_args():
     eg_conf1 = {'beamline': 'p02',
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
-                'dev_ids': [1]}
-
-    # An example aya.argv to encode this lot:
+                'dev_ids': [1],
+                'write_params': False}
+    # An example sys.argv to encode this lot:
     eg_argv1 = ['-b', 'p02', '--tango-host', 'haspp02oh1:10000',
                 '-s', 'EH1A', '1']
     assert parse_args(eg_argv1) == eg_conf1
@@ -21,7 +21,8 @@ def test_parse_args():
     eg_conf2 = {'beamline': 'p02',
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
-                'dev_ids': [12, 15, 32]}
+                'dev_ids': [12, 15, 32],
+                'write_params': False}
     eg_argv2 = ['-s', 'EH1A', '12,15,32']
     assert parse_args(eg_argv2) == eg_conf2
 
@@ -29,9 +30,20 @@ def test_parse_args():
     eg_conf3 = {'beamline': 'p02',
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
-                'dev_ids': None}
+                'dev_ids': None,
+                'write_params': False}
     eg_argv3 = ['-s', 'EH1A']
     assert parse_args(eg_argv3) == eg_conf3
+
+    # Test writing back of values
+    eg_conf4 = {'beamline': 'p02',
+                'tango_host': 'haspp02oh1:10000',
+                'server': 'EH1A',
+                'dev_ids': None,
+                'write_params': True,
+                'input_file': 'new-motors.param'}
+    eg_argv4 = ['-s', 'EH1A', '--write', 'new-motors.param']
+    assert parse_args(eg_argv4) == eg_conf4
 
 
 # @pytest.fixture
