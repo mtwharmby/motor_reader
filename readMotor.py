@@ -13,9 +13,14 @@ except ModuleNotFoundError:
 
 ''' This is the list of parameters for ZMX and OMSvme respectively which will
  be read/written'''
-_parameters_list = {'zmx': ['RunCurrent', 'StopCurrent', 'AxisName'],
-                    'oms': ['Acceleration', 'Conversion', 'BaseRate',
-                            'SlewRate', 'SlewRateMax']}
+_parameters_list = {'zmx': ['StopCurrent', 'RunCurrent', 
+                            'PreferentialDirection', 'StepWidth', 'DelayTime', 
+                            'AxisName'],
+                    'oms': ['Acceleration', 'BaseRate', 'Conversion', 
+                            'SettleTime', 'SlewRate', 'SlewRateMax', 
+                            'SlewRateMin', 'StepBacklash', 'StepLimitMax', 
+                            'StepLimitMin', 'UnitBacklash', 'UnitLimitMax', 
+                            'UnitLimitMin']}
 _beamline = 'p02'
 _tango_host = 'haspp02oh1:10000'
 _servers = {'EH1A': 64, 'EH1B': 16}
