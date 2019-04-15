@@ -2,7 +2,7 @@ import pytest
 from mock import call, Mock, patch
 
 from readMotor import (parse_args, read_parameters, generate_device_names, 
-                       read_dat, write_dat, file_writer, main)
+                       read_dat, write_dat, main)
 
 
 def test_parse_args():
@@ -104,15 +104,21 @@ def test_write_dat_file(file_write_mock, date_mock):
     now.second = 5
     date_mock.today.return_value = now
 
+    reduced_attr = ['oms:attr1', 'zmx:attr2']
+
     write_dat({'EH1A.01': {'oms:attr1': 4, 'oms:attr2': 7,
                            'zmx:attr1': 12, 'zmx:attr2': 756},
                'EH1A.03': {'oms:attr1': 1, 'oms:attr2': 43,
                            'zmx:attr1': 6, 'zmx:attr2': 793}
-               })
+               }, reduced_attr)
 
-    file_write_mock.assert_called_with(['EH1A.01,oms:attr1,4,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',
-                                        'EH1A.03,oms:attr1,1,oms:attr2,43,zmx:attr1,6,zmx:attr2,793\n'
-                                        ], 'motors-20190414_235205.params')
+    file_writer_calls = [call(['EH1A.01,oms:attr1,4,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',
+                               'EH1A.03,oms:attr1,1,oms:attr2,43,zmx:attr1,6,zmx:attr2,793\n'
+                               ], 'motors-20190414_235205.params'),
+                         call(['EH1A.01,oms:attr1,4,zmx:attr2,756\n',
+                               'EH1A.03,oms:attr1,1,zmx:attr2,793\n'
+                               ], 'motors-20190414_235205_reduced.params')]
+    file_write_mock.assert_has_calls(file_writer_calls)
 
 
 @patch('readMotor.write_dat')

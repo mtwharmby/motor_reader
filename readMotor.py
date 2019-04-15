@@ -148,7 +148,7 @@ def read_dat(filename):
     return all_params
 
 
-def write_dat(all_params):
+def write_dat(all_params, reduced_params_list=_reduced_attr):
     def merge_line_list(line):
         joined_line = ','.join(line)
         return joined_line+'\n'
@@ -160,7 +160,7 @@ def write_dat(all_params):
         line_red = [device]
         for attr, value in sorted(attributes.items()):
             line_full.append('{},{}'.format(attr, value))
-            if attr in _reduced_attr:
+            if attr in reduced_params_list:
                 line_red.append('{},{}'.format(attr, value))
 
         out_lines_full.append(merge_line_list(line_full))
@@ -172,7 +172,7 @@ def write_dat(all_params):
     file_writer(out_lines_full, params_filename)
 
     reduced_params_filename = 'motors-{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}_reduced.params'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
-    file_writer(out_lines_red, reduced_params_filename)  # TODO FIXME Breaks test
+    file_writer(out_lines_red, reduced_params_filename)
 
 
 def main():
