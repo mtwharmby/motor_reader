@@ -13,11 +13,21 @@ except ModuleNotFoundError:
 
 ''' This is the list of parameters for ZMX and OMSvme respectively which will
  be read/written'''
-_parameters_list = {'zmx': [],
-                    'oms': []}
+_parameters_list = {'zmx': ['RunCurrent', 'StopCurrent', 'AxisName'],
+                    'oms': ['Acceleration', 'Conversion', 'BaseRate',
+                            'SlewRate', 'SlewRateMax']}
 _beamline = 'p02'
 _tango_host = 'haspp02oh1:10000'
 _servers = {'EH1A': 64, 'EH1B': 16}
+
+_reduced_attr = []
+
+
+def make_reduced_attribs():
+    # TODO FIXME Needs a test!
+    for dev_proxy, attribute_list in _parameters_list.items():
+        for attr in attribute_list:
+            _reduced_attr.append('{}:{}'.format(dev_proxy, attr))
 
 
 def parse_args(user_args):
@@ -127,20 +137,30 @@ def read_dat(filename):
 
 
 def write_dat(all_params):
-    out_lines = []
-    for device, attributes in sorted(all_params.items()):
-        line = [device]
-        for attr, value in sorted(attributes.items()):
-            line.append('{},{}'.format(attr, value))
-
+    def merge_line_list(line):
         joined_line = ','.join(line)
-        out_lines.append(joined_line+'\n')
+        return joined_line+'\n'
+
+    out_lines_full = []
+    out_lines_red = []
+    for device, attributes in sorted(all_params.items()):
+        line_full = [device]
+        line_red = [device]
+        for attr, value in sorted(attributes.items()):
+            line_full.append('{},{}'.format(attr, value))
+            if attr in _reduced_attr:
+                line_red.append('{},{}'.format(attr, value))
+
+        out_lines_full.append(merge_line_list(line_full))
+        out_lines_red.append(merge_line_list(line_red))
 
     now = datetime.today()
-    print(now.year)
-    params_filename = 'motors-{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}.params'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
-    file_writer(out_lines, params_filename)
+    params_filename = 'motors-{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}.params'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
+    file_writer(out_lines_full, params_filename)
+
+    reduced_params_filename = 'motors-{0:04d}{1:02d}{2:02d}_{3:02d}{4:02d}{5:02d}_reduced.params'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
+    file_writer(out_lines_red, reduced_params_filename)  # TODO FIXME Breaks test
 
 
 def main():
@@ -160,13 +180,9 @@ def main():
             all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
             print('{}: DONE'.format(motor))
 
+    make_reduced_attribs()
     write_dat(all_motor_params)
 
-    # ForEach motor:
-    # - Create DeviceProxies
-    # - read_parameters
-    # - write_dat
-    # - write_readable_table
 
 if __name__ == "__main__":
     main()
