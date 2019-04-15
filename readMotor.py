@@ -1,6 +1,7 @@
 import sys
 import argparse
 import math
+import itertools
 
 from datetime import datetime
 
