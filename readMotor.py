@@ -19,9 +19,20 @@ _parameters_list = {'zmx': ['StopCurrent', 'RunCurrent',
                             'AxisName'],
                     'oms': ['Acceleration', 'BaseRate', 'Conversion', 
                             'SettleTime', 'SlewRate', 'SlewRateMax', 
-                            'SlewRateMin', 'StepBacklash', 'StepLimitMax', 
-                            'StepLimitMin', 'UnitBacklash', 'UnitLimitMax', 
-                            'UnitLimitMin']}
+                            'SlewRateMin', 'StepBacklash', 'StepCalibration',
+                            'StepCalibrationUser', 'StepLimitMax',
+                            'StepLimitMin', 'StepPositionInternal',
+                            'StepPositionController', 'UnitBacklash',
+                            'UnitCalibration', 'UnitCalibrationUser',
+                            'UnitLimitMax', 'UnitLimitMin', 'DerivativeGain',
+                            'IntegralGain', 'ProportionalGain',
+                            'FlagProtected', 'Position', 'FlagEncoderHomed',
+                            'ConversionEncoder', 'HomePosition',
+                            'FlagUseEncoderPosition', 'FlagClosedLoop',
+                            'SlewRateCorrection', 'StepDeadBand',
+                            'CorrectionGain', 'SlipTolerance', 'CutOrMap',
+                            'FlagInvertEncoderDirection',
+                            'FlagCheckZMXActivated']}                 
 _beamline = 'p02'
 _tango_host = 'haspp02oh1:10000'
 _servers = {'EH1A': 64, 'EH1B': 16}
