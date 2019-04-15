@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 
 try:
-    from PyTango import DeviceProxy, DevError
+    from PyTango import DeviceProxy, DevFailed
 except ModuleNotFoundError:
     print("WARNING: No PyTango module imported!\n\nIgnore if testing")
     DeviceProxy = None
@@ -77,7 +77,7 @@ def read_parameters(oms_dp, zmx_dp):
             label = '{}:{}'.format(prefix, attrib)
             try:
                 motor_params[label] = dev_proxy.read_attribute(attrib).value
-            except DevError:
+            except DevFailed:
                 motor_params[label] = math.nan
 
     return motor_params
