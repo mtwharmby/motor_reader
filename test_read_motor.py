@@ -77,6 +77,21 @@ def test_read_motor_parameters():
                           'zmx:attr1': 4, 'zmx:attr2': 4}
 
 
+def test_write_motor_parameters():
+    oms_dp_mock = Mock()
+    zmx_dp_mock = Mock()
+
+    motor_params = {'oms:attr1': 2, 'oms:attr2': 6,
+                    'zmx:attra': 24, 'zmx:attrb': 10, 'Deactivation': 0}
+
+    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params)
+
+    oms_calls = [call('attr1', 2), call('attr2', 6)]
+    zmx_calls = [call('attra', 24), call('attrb', 10)]
+    oms_dp_mock.write_attribute.assert_has_calls(oms_calls)
+    zmx_dp_mock.write_attribute.assert_has_calls(zmx_calls)
+
+
 @patch('readMotor.file_reader')
 def test_read_dat_file(file_read_mock):
     file_read_mock.return_value = ['EH1A.01,oms:attr1,4.3,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',

@@ -109,6 +109,32 @@ def read_parameters(oms_dp, zmx_dp):
     return motor_params
 
 
+def write_parameters(oms_dp, zmx_dp, attribs_to_write, raise_errors=False):
+    old_attribs = {}
+    try:
+        for attrib in attribs_to_write.keys():
+            attr_class, attr_name = attrib.split(':')
+            if attr_name == 'Deactivation':
+                continue
+
+            if attr_class == 'oms':
+                dev_proxy = oms_dp
+            elif attr_class == 'zmx':
+                dev_proxy = zmx_dp
+            else:
+                print('ERROR: Unrecognised device class {}'.format(attr_class))
+                raise Exception('Unrecognised device class')
+
+            old_attribs[attrib] = dev_proxy.read_attribute(attr_name)
+            dev_proxy.write_attribute(attr_name, attribs_to_write[attrib])
+    except Exception as ex:
+        if raise_errors:
+            raise ex
+        # We will try to undo what's been written to the Tango servers here.
+        # If an error occurs though, it needs to be raised.
+        write_parameters(oms_dp, zmx_dp, old_attribs, True) 
+
+
 def file_reader(filename):
     with open(filename, 'r') as in_file:
         return in_file.readlines()
@@ -123,6 +149,8 @@ def file_writer(input_lines, filename):
 def read_dat(filename):
     def string_to_numeric(string):
         try:
+            if string == 'nan':
+                return math.nan
             return int(string)
         except ValueError:
             try:
