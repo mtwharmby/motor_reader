@@ -80,7 +80,6 @@ def test_read_dat_file(file_read_mock):
                           }
 
 
-
 @patch('readMotor.datetime')
 @patch('readMotor.file_writer')
 def test_write_dat_file(file_write_mock, date_mock):
