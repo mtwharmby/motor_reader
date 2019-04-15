@@ -251,7 +251,6 @@ def main():
     else:
         all_motor_params = {}
         # For each motor in the list, make Tango servers and query them for information
-    all_motor_params = {}
         for server in sorted(dev_names.keys()):
             for motor in dev_names[server]:
                 oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
@@ -261,7 +260,6 @@ def main():
                 print('{}: DONE'.format(motor))
             print('\nSuccessfully read configurations for motors:\n{}'.format(', '.join(dev_names[server])))
 
-        make_reduced_attribs()
         write_dat(all_motor_params)
 
 
