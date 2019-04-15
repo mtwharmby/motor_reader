@@ -84,12 +84,22 @@ def test_write_motor_parameters():
     motor_params = {'oms:attr1': 2, 'oms:attr2': 6,
                     'zmx:attra': 24, 'zmx:attrb': 10, 'Deactivation': 0}
 
-    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params)
+    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params,reduced_params_list=['oms:attr1', 'oms:attr2', 'zmx:attra', 'zmx:attrb'])
 
     oms_calls = [call('attr1', 2), call('attr2', 6)]
     zmx_calls = [call('attra', 24), call('attrb', 10)]
     oms_dp_mock.write_attribute.assert_has_calls(oms_calls)
     zmx_dp_mock.write_attribute.assert_has_calls(zmx_calls)
+    assert zmx_dp_mock.write_attribute.call_count == 2
+
+    # Try again with a reduced parameter list
+    oms_dp_mock.reset_mock()
+    zmx_dp_mock.reset_mock()
+    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params, reduced_params_list=['oms:attr1', 'oms:attr2', 'zmx:attra'])
+    zmx_calls_2 = [call('attra', 24)]
+    oms_dp_mock.write_attribute.assert_has_calls(oms_calls)
+    zmx_dp_mock.write_attribute.assert_has_calls(zmx_calls_2)
+    assert zmx_dp_mock.write_attribute.call_count == 1
 
 
 @patch('readMotor.file_reader')

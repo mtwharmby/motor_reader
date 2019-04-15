@@ -121,14 +121,20 @@ def read_parameters(oms_dp, zmx_dp):
     return motor_params
 
 
-def write_parameters(oms_dp, zmx_dp, attribs_to_write, raise_errors=False):
+def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, raise_errors=False):
     old_attribs = {}
     try:
         for attrib in attribs_to_write.keys():
+            # Only write the parameter if it's in the reduced_params_list...
+            if attrib not in reduced_params_list:
+                continue
+
             attr_class, attr_name = attrib.split(':')
+            # ...and it's not called 'Deactivation'
             if attr_name == 'Deactivation':
                 continue
 
+            # Create a device proxy depending whether this is an OMS of ZMX attribute
             if attr_class == 'oms':
                 dev_proxy = oms_dp
             elif attr_class == 'zmx':
@@ -137,9 +143,10 @@ def write_parameters(oms_dp, zmx_dp, attribs_to_write, raise_errors=False):
                 print('ERROR: Unrecognised device class {}'.format(attr_class))
                 raise Exception('Unrecognised device class')
 
+            # Do the write
             old_attribs[attrib] = dev_proxy.read_attribute(attr_name)
             dev_proxy.write_attribute(attr_name, attribs_to_write[attrib])
-    except Exception as ex:
+    except Exception as ex:  # FIXME This ought to be a specific error
         if raise_errors:
             raise ex
         # We will try to undo what's been written to the Tango servers here.
@@ -218,6 +225,8 @@ def write_dat(all_params, reduced_params_list=_reduced_attr):
 def main():
     # Find out what we're supposed to be doing...
     config = parse_args(sys.argv[1:])
+    # ...and set up the reduced set of parameters we're interested in.
+    make_reduced_attribs()
 
     # Construct all the names of the motors we're interested in
     dev_names = generate_device_names(config['server'], config['dev_ids'])
