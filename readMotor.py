@@ -12,6 +12,12 @@ except ModuleNotFoundError:
     DeviceProxy = None
 
 
+# Need python 3.5 to use math.nan
+if sys.version_info <= (3, 5):
+    print('readMotor.py requires python version 3.5 (or higher)')
+    sys.exit(1)
+
+
 ''' This is the list of parameters for ZMX and OMSvme respectively which will
  be read/written'''
 _parameters_list = {'zmx': ['StopCurrent', 'RunCurrent',
