@@ -195,7 +195,7 @@ def read_dat(filename):
         attribs = {}
         attrib_list = line[1:]
         for i in range(int(len(attrib_list) / 2)):
-            if attrib_list[2*i+1] == nan:
+            if attrib_list[2*i+1] == math.nan:
                 continue
             attribs[attrib_list[i*2]] = string_to_numeric(attrib_list[2*i+1])
 
