@@ -130,6 +130,10 @@ def read_parameters(oms_dp, zmx_dp):
 
 def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, raise_errors=False):
     old_attribs = {}
+    # Taken from jive. DelayTime value reported cannot be written back 
+    # directly. Needs to be mapped.
+    DelayTime_map = {1:0, 2:1, 4:2, 6:3, 8:4, 10:5, 12:6, 14:7, 16:8, 20:9,
+                     40:10, 60:11, 100:12, 200:13, 500:14, 1000:15}
     try:
         for attrib in attribs_to_write.keys():
             # Only write the parameter if it's in the reduced_params_list...
@@ -152,6 +156,9 @@ def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_redu
 
             # Do the write
             old_attribs[attrib] = dev_proxy.read_attribute(attr_name)
+            # For DelayTime we have to map from 4-bit or something...
+            if attr_name == 'DelayTime':
+                attribs_to_write[attrib] = DelayTime_map[attribs_to_write[attrib]]
             dev_proxy.write_attribute(attr_name, attribs_to_write[attrib])
     except Exception as ex:  # FIXME This ought to be a specific error
         if raise_errors:
