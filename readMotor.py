@@ -128,22 +128,24 @@ def read_parameters(oms_dp, zmx_dp):
     return motor_params
 
 
-def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, raise_errors=False):
+def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, retry=False, raise_errors=False, written_attribs=[]):
     old_attribs = {}
+    written_attribs = []
     # Taken from jive. DelayTime value reported cannot be written back
     # directly. Needs to be mapped.
     DelayTime_map = {1: 0, 2: 1, 4: 2, 6: 3, 8: 4, 10: 5, 12: 6, 14: 7, 16: 8,
                      20: 9, 40: 10, 60: 11, 100: 12, 200: 13, 500: 14,
                      1000: 15}
-    try:
+    dev_proxy = None
+    try:  # TODO Move this inside the for-loop. That way we can retry a single attribute and then continue with the rest of the list.
         for attrib in attribs_to_write.keys():
             # Only write the parameter if it's in the reduced_params_list...
             if attrib not in reduced_params_list:
                 continue
 
             attr_class, attr_name = attrib.split(':')
-            # ...and it's not called 'Deactivation'
-            if attr_name == 'Deactivation':
+            # ...and it's previously been written and not called 'Deactivation'
+            if (attr_name in written_attribs) or attr_name == 'Deactivation':
                 continue
 
             # Create a device proxy depending whether this is an OMS of ZMX attribute
@@ -153,20 +155,39 @@ def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_redu
                 dev_proxy = zmx_dp
             else:
                 print('ERROR: Unrecognised device class {}'.format(attr_class))
-                raise Exception('Unrecognised device class')
+                raise Exception('Unrecognised device class')  # FIXME Should be a specific error
 
-            # Do the write
+            # Read and store the initial value of the parameter...
             old_attribs[attrib] = dev_proxy.read_attribute(attr_name)
+            # ...then write the new value
             # For DelayTime we have to map from 4-bit or something...
-            if attr_name == 'DelayTime':
+            if attr_name == 'DelayTime':  # FIXME Add to test!
                 attribs_to_write[attrib] = DelayTime_map[attribs_to_write[attrib]]
             dev_proxy.write_attribute(attr_name, attribs_to_write[attrib])
+            written_attribs.append(attr_name)
+
+        eprom_write = zmx_dp.WriteEPROM()
+        if eprom_write != 1:
+            print('ERROR: Failed writing EPROM for {}. Aborting'.format(zmx_dp.name()))
+            raise Exception('Writing to EPROM failed')  # FIXME Should be a specific error
+
     except Exception as ex:  # FIXME This ought to be a specific error
+        # FIXME This bit doesn't get tested
         if raise_errors:
+            # We have been told to push the error up, so do so!
             raise ex
-        # We will try to undo what's been written to the Tango servers here.
-        # If an error occurs though, it needs to be raised.
-        write_parameters(oms_dp, zmx_dp, old_attribs, True) 
+        if retry:
+            # This is already the second time... we should abandon this and give up.
+            # We try to undo what we did.
+            print('ERROR: Could not write to {}:\n{}\n\n. Attempting to revert changes...'.format(dev_proxy.name(), str(ex)))
+            write_parameters(oms_dp, zmx_dp, old_attribs, raise_errors=True)
+            # As things have gone wrong, stop any further execution
+            print('Reverted successfully. Aborting due to previous error.')
+            sys.exit(1)
+        else:
+            # This is the first attempt. We try a second time (in case this was a transient corba error)
+            print('WARNING: An error occurred while writing to {}. Retrying...'.format(dev_proxy.name()))
+            write_parameters(oms_dp, zmx_dp, attribs_to_write, retry=True, written_attribs=written_attribs)
 
 
 def file_reader(filename):
