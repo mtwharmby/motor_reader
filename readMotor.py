@@ -129,6 +129,25 @@ def read_parameters(oms_dp, zmx_dp):
 
 
 def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, retry=False, raise_errors=False, written_attribs=None):
+    # TODO Retry a single attribute rather than everything. Will allow multiple retries.
+    def do_undo_write(ex_thrown, oms_dp, zmx_dp, attribs_to_write, old_attribs, undo=False):
+        # FIXME This bit doesn't get tested
+        if raise_errors:
+            # We have been told to push the error up, so do so!
+            raise ex_thrown
+        if undo:
+            # This is already the second time... we should abandon this and give up.
+            # We try to undo what we did.
+            print('ERROR: Could not write to {}:\n{}\n\n. Attempting to revert changes...'.format(dev_proxy.name(), str(ex_thrown)))
+            write_parameters(oms_dp, zmx_dp, old_attribs, raise_errors=True)
+            # As things have gone wrong, stop any further execution
+            print('Reverted successfully. Aborting due to previous error.')
+            sys.exit(1)
+        else:
+            # This is the first attempt. We try a second time (in case this was a transient corba error)
+            print('WARNING: An error occurred while writing to {}. Retrying...'.format(dev_proxy.name()))
+            write_parameters(oms_dp, zmx_dp, attribs_to_write, retry=True, written_attribs=written_attribs)
+
     old_attribs = {}
     # This ensures that written_attribs is an empty list if the function is
     # called without arguments a second time. Otherwise test doesn't pass.
@@ -141,57 +160,45 @@ def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_redu
                      1000: 15}
     dev_proxy = None
 
-    try:  # TODO Move this inside the for-loop. That way we can retry a single attribute and then continue with the rest of the list.
-        for attrib in attribs_to_write.keys():
-            # Only write the parameter if it's in the reduced_params_list...
-            if attrib not in reduced_params_list:
-                continue
+    for attrib in attribs_to_write.keys():
+        # Only write the parameter if it's in the reduced_params_list...
+        if attrib not in reduced_params_list:
+            continue
 
-            attr_class, attr_name = attrib.split(':')
-            # ...and it's previously been written and not called 'Deactivation'
-            if (attr_name in written_attribs) or attr_name == 'Deactivation':
-                continue
+        attr_class, attr_name = attrib.split(':')
+        # ...and it's previously been written and not called 'Deactivation'
+        if (attr_name in written_attribs) or attr_name == 'Deactivation':
+            continue
 
-            # Create a device proxy depending whether this is an OMS of ZMX attribute
-            if attr_class == 'oms':
-                dev_proxy = oms_dp
-            elif attr_class == 'zmx':
-                dev_proxy = zmx_dp
-            else:
-                print('ERROR: Unrecognised device class {}'.format(attr_class))
-                raise Exception('Unrecognised device class')  # FIXME Should be a specific error
+        # Create a device proxy depending whether this is an OMS of ZMX attribute
+        if attr_class == 'oms':
+            dev_proxy = oms_dp
+        elif attr_class == 'zmx':
+            dev_proxy = zmx_dp
+        else:
+            print('ERROR: Unrecognised device class {}'.format(attr_class))
+            raise Exception('Unrecognised device class')  # FIXME Should be a specific error
 
-            # Read and store the initial value of the parameter...
-            old_attribs[attrib] = dev_proxy.read_attribute(attr_name)
-            # ...then write the new value
-            # For DelayTime we have to map from 4-bit or something...
-            if attr_name == 'DelayTime':  # FIXME Add to test!
-                attribs_to_write[attrib] = DelayTime_map[attribs_to_write[attrib]]
+        # Read and store the initial value of the parameter...
+        old_attribs[attrib] = dev_proxy.read_attribute(attr_name)
+        # ...then write the new value
+        # For DelayTime we have to map from 4-bit or something...
+        if attr_name == 'DelayTime':  # FIXME Add to test!
+            attribs_to_write[attrib] = DelayTime_map[attribs_to_write[attrib]]
+
+        try:
             dev_proxy.write_attribute(attr_name, attribs_to_write[attrib])
             written_attribs.append(attr_name)
+        except Exception as ex:
+            do_undo_write(ex, oms_dp, zmx_dp, attribs_to_write, old_attribs, undo=retry)
 
-        eprom_write = zmx_dp.WriteEPROM()
-        if eprom_write != 1:
-            print('ERROR: Failed writing EPROM for {}. Aborting'.format(zmx_dp.name()))
-            raise Exception('Writing to EPROM failed')  # FIXME Should be a specific error
-
-    except Exception as ex:  # FIXME This ought to be a specific error
-        # FIXME This bit doesn't get tested
+    eprom_write = zmx_dp.WriteEPROM()
+    if eprom_write != 1:
+        print('ERROR: Failed writing EPROM for {}. Aborting'.format(zmx_dp.name()))
         if raise_errors:
-            # We have been told to push the error up, so do so!
-            raise ex
-        if retry:
-            # This is already the second time... we should abandon this and give up.
-            # We try to undo what we did.
-            print('ERROR: Could not write to {}:\n{}\n\n. Attempting to revert changes...'.format(dev_proxy.name(), str(ex)))
-            write_parameters(oms_dp, zmx_dp, old_attribs, raise_errors=True)
-            # As things have gone wrong, stop any further execution
-            print('Reverted successfully. Aborting due to previous error.')
-            sys.exit(1)
-        else:
-            # This is the first attempt. We try a second time (in case this was a transient corba error)
-            print('WARNING: An error occurred while writing to {}. Retrying...'.format(dev_proxy.name()))
-            write_parameters(oms_dp, zmx_dp, attribs_to_write, retry=True, written_attribs=written_attribs)
+            raise Exception('Writing to EPROM failed')  # FIXME Should be a specific error
+        # EPROM write failed, we'll try to undo the write
+        do_undo_write(Exception('Writing to EPROM failed'), oms_dp, zmx_dp, attribs_to_write, old_attribs, undo=True)
 
 
 def file_reader(filename):
