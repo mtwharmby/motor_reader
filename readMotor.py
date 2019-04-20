@@ -90,14 +90,14 @@ def parse_args(user_args):
 
 def generate_device_names(server, dev_ids=None):
     '''
-    Determines the names of the motor Tango servers associated with a given 
+    Determines the names of the motor Tango servers associated with a given
     server
     '''
     if dev_ids:
         if not (isinstance(dev_ids, list) or isinstance(dev_ids, tuple)):
             dev_ids = [dev_ids]
     else:
-        dev_ids = list(range(1, _servers[server] + 1))  # Is the +1 needed?
+        dev_ids = list(range(1, _servers[server] + 1))
 
     server_devs = {server: []}
     for i in dev_ids:
@@ -215,9 +215,6 @@ def read_dat(filename):
             # Maybe it wasn't an int. Try a string.
             # If we error this time, it gets raised
             return float(string)
-            except ValueError:
-                print('String {} cannot be converted to int or float. Aborting!'.format(string))
-                sys.exit(1)
 
     in_lines = file_reader(filename)
 
