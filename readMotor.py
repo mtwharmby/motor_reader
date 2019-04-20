@@ -288,17 +288,22 @@ def main():
         input_motor_params = read_dat(config['input_file'])
 
         # We check that all of the motors we are interested in have an entry in our input file
-        all_motors = list(itertools.chain.from_iterable(dev_names.values()))
-        if set(all_motors).issubset(input_motor_params.keys()):
-            for motor in all_motors:
+        all_motors = set(itertools.chain.from_iterable(dev_names.values()))
+        motors_with_params = set(input_motor_params.keys())
+        motors_to_update = list(all_motors & motors_with_params)
+        # The input file should contain only motors which are on the given
+        # server or, the input file should contain parameters for all motors
+        # when device IDs have been specified.
+        if set(motors_with_params).issubset(all_motors) or (bool(config['dev_ids']) and all_motors.issubset(motors_with_params)):
+            for motor in sorted(motors_to_update):
                 oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
                 zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
                 print('Writing config to motor {}'.format(motor))
                 write_parameters(oms_dp, zmx_dp, input_motor_params[motor])
                 print('{}: DONE'.format(motor))
-            print('\nSuccessfully updated configuration for motors:\n{}'.format(', '.join(all_motors)))
+            print('\nSuccessfully updated configuration for motors:\n{}'.format(', '.join(sorted(motors_to_update))))
         else:
-            print('ERROR: Configuration for one or more of the requested motors is not in\nthe input file.\nAborting...')
+            print('ERROR: Configuration for one or more of the requested motors is not in the input file.\nAborting...')
             sys.exit(1)
     else:
         all_motor_params = {}
