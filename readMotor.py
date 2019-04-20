@@ -212,8 +212,9 @@ def read_dat(filename):
                 return math.nan
             return int(string)
         except ValueError:
-            try:
-                return float(string)
+            # Maybe it wasn't an int. Try a string.
+            # If we error this time, it gets raised
+            return float(string)
             except ValueError:
                 print('String {} cannot be converted to int or float. Aborting!'.format(string))
                 sys.exit(1)
@@ -222,15 +223,28 @@ def read_dat(filename):
 
     all_params = {}
     for line in in_lines:
-        line = line.rstrip().split(',')
+        line = line.rstrip().rstrip(',').split(',')
         assert len(line) % 2 != 0  # There should be n k,v pairs + the device name (odd number of entries in list)
 
         attribs = {}
         attrib_list = line[1:]
         for i in range(int(len(attrib_list) / 2)):
-            if attrib_list[2*i+1] == math.nan:
-                continue
-            attribs[attrib_list[i*2]] = string_to_numeric(attrib_list[2*i+1])
+
+            if attrib_list[2*i] == 'zmx:AxisName':
+                # AxisName is a string. Don't try to conver to number
+                attribs[attrib_list[i*2]] = attrib_list[2*i+1]
+            else:
+                attrib_val = None
+                try:
+                    attrib_val = string_to_numeric(attrib_list[2*i+1])
+                except ValueError:
+                    print('Motor{} ({}): String {} cannot be converted to int or float. Aborting!'.format(line[0], attrib_list[i*2], attrib_list[2*i+1]))
+                    sys.exit(1)
+
+                if attrib_val == math.nan:
+                    # We don't want to try writing NaNs...
+                    continue
+                attribs[attrib_list[i*2]] = attrib_val
 
         all_params[line[0]] = attribs
 

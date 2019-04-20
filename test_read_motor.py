@@ -105,9 +105,10 @@ def test_write_motor_parameters():
 
 @patch('readMotor.file_reader')
 def test_read_dat_file(file_read_mock):
-    file_read_mock.return_value = ['EH1A.01,oms:attr1,4.3,oms:attr2,7,zmx:attr1,12,zmx:attr2,756\n',
+    file_read_mock.return_value = ['EH1A.01,oms:attr1,4.3,oms:attr2,7,zmx:attr1,12,zmx:attr2,756,,,,\n',
                                    'EH1A.03,oms:attr1,1.0,oms:attr2,43,zmx:attr1,6,zmx:attr2,793\n'
                                    ]
+    # Output from Excel/oocalc can have trailing ','s. We need to remove these
 
     all_params = read_dat('motor_date.params')
     file_read_mock.assert_called_with('motor_date.params')
