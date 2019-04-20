@@ -128,15 +128,19 @@ def read_parameters(oms_dp, zmx_dp):
     return motor_params
 
 
-def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, retry=False, raise_errors=False, written_attribs=[]):
+def write_parameters(oms_dp, zmx_dp, attribs_to_write, reduced_params_list=_reduced_attr, retry=False, raise_errors=False, written_attribs=None):
     old_attribs = {}
-    written_attribs = []
+    # This ensures that written_attribs is an empty list if the function is
+    # called without arguments a second time. Otherwise test doesn't pass.
+    if not written_attribs:
+        written_attribs = []
     # Taken from jive. DelayTime value reported cannot be written back
     # directly. Needs to be mapped.
     DelayTime_map = {1: 0, 2: 1, 4: 2, 6: 3, 8: 4, 10: 5, 12: 6, 14: 7, 16: 8,
                      20: 9, 40: 10, 60: 11, 100: 12, 200: 13, 500: 14,
                      1000: 15}
     dev_proxy = None
+
     try:  # TODO Move this inside the for-loop. That way we can retry a single attribute and then continue with the rest of the list.
         for attrib in attribs_to_write.keys():
             # Only write the parameter if it's in the reduced_params_list...

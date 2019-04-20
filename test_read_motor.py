@@ -80,14 +80,15 @@ def test_read_motor_parameters():
 def test_write_motor_parameters():
     oms_dp_mock = Mock()
     zmx_dp_mock = Mock()
+    zmx_dp_mock.WriteEPROM.return_value = 1
 
-    motor_params = {'oms:attr1': 2, 'oms:attr2': 6,
-                    'zmx:attra': 24, 'zmx:attrb': 10, 'Deactivation': 0}
+    motor_params = {'oms:oattr1': 2, 'oms:oattr2': 6,
+                    'zmx:zattra': 24, 'zmx:zattrb': 10, 'zmx:Deactivation': 0}
 
-    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params,reduced_params_list=['oms:attr1', 'oms:attr2', 'zmx:attra', 'zmx:attrb'])
+    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params, reduced_params_list=['oms:oattr1', 'oms:oattr2', 'zmx:zattra', 'zmx:zattrb'])
 
-    oms_calls = [call('attr1', 2), call('attr2', 6)]
-    zmx_calls = [call('attra', 24), call('attrb', 10)]
+    oms_calls = [call('oattr1', 2), call('oattr2', 6)]
+    zmx_calls = [call('zattra', 24), call('zattrb', 10)]
     oms_dp_mock.write_attribute.assert_has_calls(oms_calls)
     zmx_dp_mock.write_attribute.assert_has_calls(zmx_calls)
     assert zmx_dp_mock.write_attribute.call_count == 2
@@ -95,8 +96,8 @@ def test_write_motor_parameters():
     # Try again with a reduced parameter list
     oms_dp_mock.reset_mock()
     zmx_dp_mock.reset_mock()
-    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params, reduced_params_list=['oms:attr1', 'oms:attr2', 'zmx:attra'])
-    zmx_calls_2 = [call('attra', 24)]
+    write_parameters(oms_dp_mock, zmx_dp_mock, motor_params, reduced_params_list=['oms:oattr1', 'oms:oattr2', 'zmx:zattra'])
+    zmx_calls_2 = [call('zattra', 24)]
     oms_dp_mock.write_attribute.assert_has_calls(oms_calls)
     zmx_dp_mock.write_attribute.assert_has_calls(zmx_calls_2)
     assert zmx_dp_mock.write_attribute.call_count == 1
