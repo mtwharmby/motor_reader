@@ -11,6 +11,7 @@ def test_parse_args():
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
                 'dev_ids': [1],
+                'compare_params': False,
                 'write_params': False}
     # An example sys.argv to encode this lot:
     eg_argv1 = ['-b', 'p02', '--tango-host', 'haspp02oh1:10000',
@@ -22,6 +23,7 @@ def test_parse_args():
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
                 'dev_ids': [12, 15, 32],
+                'compare_params': False,
                 'write_params': False}
     eg_argv2 = ['-s', 'EH1A', '12,15,32']
     assert parse_args(eg_argv2) == eg_conf2
@@ -31,6 +33,7 @@ def test_parse_args():
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
                 'dev_ids': None,
+                'compare_params': False,
                 'write_params': False}
     eg_argv3 = ['-s', 'EH1A']
     assert parse_args(eg_argv3) == eg_conf3
@@ -40,6 +43,7 @@ def test_parse_args():
                 'tango_host': 'haspp02oh1:10000',
                 'server': 'EH1A',
                 'dev_ids': None,
+                'compare_params': False,
                 'write_params': True,
                 'input_file': 'new-motors.param'}
     eg_argv4 = ['-s', 'EH1A', '--write', 'new-motors.param']
@@ -158,6 +162,7 @@ def test_main(args_p_mock, dp_mock, read_params_mock, writer_mock):
                                 'tango_host': 'haspp02oh1:10000',
                                 'server': 'EH1A',
                                 'dev_ids': [1, 3],
+                                'compare_params': False,
                                 'write_params': False}
     read_params_mock.return_value = {'oms:attr1': 4, 'oms:attr2': 4,
                                      'zmx:attr1': 4, 'zmx:attr2': 4}

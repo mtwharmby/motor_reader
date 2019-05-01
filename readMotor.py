@@ -62,6 +62,7 @@ def parse_args(user_args):
     # At somepoint we could make server not required, default to the all the 
     # keys in the _servers dict. But that needs more refactoring
     parser.add_argument('--write', default=False)
+    parser.add_argument('--compare', default=False)  # FIXME: This is not tested!
     parser.add_argument('dev_ids', default=None, nargs='?')
 
     args = parser.parse_args(user_args)
@@ -74,6 +75,12 @@ def parse_args(user_args):
         config['input_file'] = args.write
     else:
         config['write_params'] = False
+    
+    if args.compare:
+        config['compare_params'] = True
+        config['input_file'] = args.write
+    else:
+        config['compare_params'] = False
 
     if args.dev_ids:
         try:
@@ -282,6 +289,21 @@ def write_dat(all_params, reduced_params_list=_reduced_attr):
     file_writer(out_lines_red, reduced_params_filename)
 
 
+def read_motors(config, dev_names):  # FIXME: Should have separate test?
+    # For each motor in the list, make Tango servers and query them for information
+    all_motor_params = {}
+    for server in sorted(dev_names.keys()):
+        for motor in dev_names[server]:
+            oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
+            zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
+            print('Reading parameters for motor {}...'.format(motor))
+            all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
+            print('{}: DONE'.format(motor))
+        print('\nSuccessfully read configurations for motors:\n{}'.format(', '.join(dev_names[server])))
+
+    return all_motor_params
+
+
 def main():
     # Find out what we're supposed to be doing...
     config = parse_args(sys.argv[1:])
@@ -290,12 +312,12 @@ def main():
 
     # Construct all the names of the motors we're interested in
     dev_names = generate_device_names(config['server'], config['dev_ids'])
+    all_motors = set(itertools.chain.from_iterable(dev_names.values()))
 
     if config['write_params']:
         input_motor_params = read_dat(config['input_file'])
 
         # We check that all of the motors we are interested in have an entry in our input file
-        all_motors = set(itertools.chain.from_iterable(dev_names.values()))
         motors_with_params = set(input_motor_params.keys())
         motors_to_update = list(all_motors & motors_with_params)
         # The input file should contain only motors which are on the given
@@ -312,18 +334,30 @@ def main():
         else:
             print('ERROR: Configuration for one or more of the requested motors is not in the input file.\nAborting...')
             sys.exit(1)
-    else:
-        all_motor_params = {}
-        # For each motor in the list, make Tango servers and query them for information
-        for server in sorted(dev_names.keys()):
-            for motor in dev_names[server]:
-                oms_dp = DeviceProxy('{}/{}/motor/{}'.format(config['tango_host'], config['beamline'], motor))
-                zmx_dp = DeviceProxy('{}/{}/ZMX/{}'.format(config['tango_host'], config['beamline'], motor))
-                print('Reading parameters for motor {}...'.format(motor))
-                all_motor_params[motor] = read_parameters(oms_dp, zmx_dp)
-                print('{}: DONE'.format(motor))
-            print('\nSuccessfully read configurations for motors:\n{}'.format(', '.join(dev_names[server])))
 
+    elif config['compare_params']:  # FIXME: this part of function not tested!
+        input_motor_params = read_dat(config['input_file'])
+        current_motor_params = read_motors(config, dev_names)
+
+        # As per the write, we check that all of the motors we are interested in have an entry in our input file
+        motors_with_params = set(input_motor_params.keys())
+        motors_to_update = list(all_motors & motors_with_params)
+        if set(motors_with_params).issubset(all_motors) or (bool(config['dev_ids']) and all_motors.issubset(motors_with_params)):
+            for motor in sorted(motors_to_update):
+                motors_equal = True
+                for recorded_param in input_motor_params[motor].keys():
+                    curr_param_equal = input_motor_params[recorded_param] == current_motor_params[recorded_param]
+                    motors_equal = motors_equal and curr_param_equal
+                    if not curr_param_equal:
+                        print('{} parameter for motor {} differ! (Input: {} Current: {}'.format(recorded_param, motor, input_motor_params[recorded_param], current_motor_params[recorded_param]))
+                        
+                if motors_equal:
+                    print('{}: Input and current params are same\n'.format(motor))
+                else:
+                    print('{}: Input and current params are DIFFERENT\n'.format(motor))
+
+    else:
+        all_motor_params = read_motors(config, dev_names)
         write_dat(all_motor_params)
 
 
