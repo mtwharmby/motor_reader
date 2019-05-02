@@ -39,7 +39,7 @@ _parameters_list = {'zmx': ['StopCurrent', 'RunCurrent',
                             'SlewRateCorrection', 'StepDeadBand',
                             'CorrectionGain', 'SlipTolerance', 'CutOrMap',
                             'FlagInvertEncoderDirection',
-                            'FlagCheckZMXActivated']}                 
+                            'FlagCheckZMXActivated']}
 _beamline = 'p02'
 _tango_host = 'haspp02oh1:10000'
 _servers = {'EH1A': 64, 'EH1B': 16}
@@ -59,7 +59,7 @@ def parse_args(user_args):
     parser.add_argument('--beamline', '-b', default=_beamline)
     parser.add_argument('--tango-host', dest='tango_host', default=_tango_host)
     parser.add_argument('--server', '-s', required=True)
-    # At somepoint we could make server not required, default to the all the 
+    # At somepoint we could make server not required, default to the all the
     # keys in the _servers dict. But that needs more refactoring
     parser.add_argument('--write', default=False)
     parser.add_argument('--compare', default=False)  # FIXME: This is not tested!
@@ -75,7 +75,7 @@ def parse_args(user_args):
         config['input_file'] = args.write
     else:
         config['write_params'] = False
-    
+
     if args.compare:
         config['compare_params'] = True
         config['input_file'] = args.compare
@@ -336,21 +336,23 @@ def main():
             sys.exit(1)
 
     elif config['compare_params']:  # FIXME: this part of function not tested!
-        input_motor_params = read_dat(config['input_file'])
-        current_motor_params = read_motors(config, dev_names)
+        input_all_motor_params = read_dat(config['input_file'])
+        current_all_motor_params = read_motors(config, dev_names)
 
         # As per the write, we check that all of the motors we are interested in have an entry in our input file
-        motors_with_params = set(input_motor_params.keys())
+        motors_with_params = set(input_all_motor_params.keys())
         motors_to_update = list(all_motors & motors_with_params)
         if set(motors_with_params).issubset(all_motors) or (bool(config['dev_ids']) and all_motors.issubset(motors_with_params)):
             for motor in sorted(motors_to_update):
                 motors_equal = True
-                for recorded_param in input_motor_params[motor].keys():
-                    curr_param_equal = input_motor_params[recorded_param] == current_motor_params[recorded_param]
+                input_this_motor_params = input_all_motor_params[motor]
+                current_this_motor_params = current_all_motor_params[motor]
+                for recorded_param in input_this_motor_params.keys():
+                    curr_param_equal = (input_this_motor_params[recorded_param] == current_this_motor_params[recorded_param])
                     motors_equal = motors_equal and curr_param_equal
                     if not curr_param_equal:
-                        print('{} parameter for motor {} differ! (Input: {} Current: {}'.format(recorded_param, motor, input_motor_params[recorded_param], current_motor_params[recorded_param]))
-                        
+                        print('{} parameter for motor {} differ! (Input: {} Current: {})'.format(recorded_param, motor, input_this_motor_params[recorded_param], current_this_motor_params[recorded_param]))
+
                 if motors_equal:
                     print('{}: Input and current params are same\n'.format(motor))
                 else:
