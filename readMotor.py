@@ -75,6 +75,12 @@ def parse_args(user_args):
         config['input_file'] = args.write
     else:
         config['write_params'] = False
+    
+    if args.compare:
+        config['compare_params'] = True
+        config['input_file'] = args.write
+    else:
+        config['compare_params'] = False
 
     if args.compare:
         config['compare_params'] = True
